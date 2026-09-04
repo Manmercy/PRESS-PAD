@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#eaf4ff" />
+    <meta name="description" content="PRESS//PAD v0.1.2 — discover, receive, and keep illustrated digital tapes." />
+    <title>PRESS//PAD v0.1.2</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+  <body>
+    <section class="entry-screen" id="entryScreen" aria-labelledby="entryTitle">
+      <div class="entry-sky" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="entry-window">
+        <header class="entry-titlebar"><span>P//P</span><p>PRESS//PAD SYSTEM</p><small>BUILD 012</small></header>
+        <div class="entry-content">
+          <div class="entry-orb" aria-hidden="true"><i></i><b>P//P</b></div>
+          <div class="entry-copy">
+            <p class="system-label">PERSONAL MUSIC TERMINAL / ONLINE</p>
+            <h1 id="entryTitle">WELCOME.</h1>
+            <p>One signal is waiting for you.</p>
+            <form id="loginForm">
+              <label>USER ID<input name="user" value="SIGNAL_GUEST" autocomplete="username" /></label>
+              <label>PASSWORD<input name="password" type="password" value="presspad" autocomplete="current-password" /></label>
+              <button class="primary-button" type="submit"><span>LOG IN</span><span>→</span></button>
+            </form>
+          </div>
+        </div>
+        <footer class="entry-status"><span>NETWORK: STABLE</span><button id="entryMusicToggle" type="button" aria-pressed="false">BGM / START</button><span>03 SEP 2026 · 16:42 ICT</span></footer>
+      </div>
+      <audio id="entryMusic" src="./assets/music/Login Screen Memories.m4a" preload="auto" autoplay loop playsinline></audio>
+    </section>
+
+    <div class="boot-screen" id="bootScreen" hidden aria-live="polite">
+      <div class="boot-mark">P//P</div>
+      <p id="bootMessage">PRESS//PAD SYSTEM STARTING</p>
+      <div class="boot-track"><i></i></div>
+      <small>DISCOVERY BECOMES MEMORY.</small>
+    </div>
+
+    <div class="app-shell" id="appShell" hidden>
+      <header class="app-header">
+        <button class="brand" data-view="home" aria-label="PRESS//PAD home"><span class="brand-mark">P//P</span><span>PRESS//PAD<small>DIGITAL TAPE PLATFORM</small></span></button>
+        <nav class="primary-nav" aria-label="Primary destinations">
+          <button data-view="discover">DISCOVER</button>
+          <button data-view="radio">PRESS//.RADIO</button>
+          <button data-view="shelf">MY SHELF</button>
+        </nav>
+        <div class="header-tools"><span class="signal-meter" aria-label="Signal active"><i></i><i></i><i></i><i></i></span><button class="settings-link" data-view="settings" aria-label="Open settings">SETTINGS</button></div>
+      </header>
+
+      <main>
+        <section class="view home-view is-active" data-page="home">
+          <img class="sora-hero" src="./assets/images/bg-home-v012.webp" alt="Sora Rei beside a translucent music player in the PRESS//PAD signal space" />
+          <div class="hero-fade" aria-hidden="true"></div>
+          <div class="home-copy">
+            <p class="kicker">SR//00 · SIGNAL ZERO · ONLINE</p>
+            <h1>THE SIGNAL<br />FOUND YOU.</h1>
+            <p class="home-intro">Sora Rei is listening. A new broadcast is available until midnight.</p>
+            <div class="home-actions">
+              <button class="primary-button" data-view="radio"><span>RECEIVE TODAY'S TAPE</span><span>→</span></button>
+              <button class="text-button" data-view="discover">OPEN DISCOVER ↗</button>
+            </div>
+            <dl class="signal-data"><div><dt>DATE</dt><dd>03 SEP 2026</dd></div><div><dt>CHANNEL</dt><dd>001</dd></div><div><dt>STATUS</dt><dd>SIGNAL DETECTED</dd></div></dl>
+          </div>
+          <aside class="sora-id"><span>PRESS//PAD NAVIGATOR</span><strong>SORA REI</strong><small>SR//00 · SIGNAL ZERO</small></aside>
+          <div class="home-destinations">
+            <button data-view="discover"><span>01</span><strong>DISCOVER</strong><small>Find music and artists</small></button>
+            <button data-view="radio"><span>02</span><strong>PRESS//.RADIO</strong><small>Receive today's broadcast</small></button>
+            <button data-view="shelf"><span>03</span><strong>MY SHELF</strong><small>Return to your tapes</small></button>
+          </div>
+        </section>
+
+        <section class="view editorial-view" data-page="discover">
+          <header class="page-header"><p class="kicker">01 / MUSIC EXPLORATION</p><h1>DISCOVER</h1><p>New frequencies selected by the PRESS//PAD editorial desk.</p></header>
+          <section class="featured-release" id="featuredRelease" aria-label="Featured release"></section>
+          <section class="catalog-section"><div class="section-heading"><div><span>NEW RELEASES</span><h2>TWELVE SIGNALS</h2></div><p>6 fictional artists · 12 canonical tracks · Common and Rare Press editions</p></div><div class="release-grid" id="releaseGrid"></div></section>
+          <section class="artists-section"><div class="section-heading"><div><span>FEATURED ARTISTS</span><h2>SIX WORLDS</h2></div><p>Each pair of tracks shares one musical and visual universe.</p></div><div class="artist-strip" id="artistStrip"></div></section>
+          <section class="news-row"><article><span>MUSIC NEWS / 003</span><h3>BOOT//SEQUENCE reopens the blue room.</h3><p>A new broadcast studies the strange comfort of old login screens.</p></article><article><span>STAFF PICK</span><h3>White Reliquary</h3><p>Architecture, silence, and a machine that almost remembers prayer.</p></article><article><span>RECENTLY ADDED</span><h3>Innlight</h3><p>A rainy road, a warm window, and four minutes before sleep.</p></article></section>
+        </section>
+
+        <section class="view radio-view" data-page="radio">
+          <div class="radio-grid">
+            <div class="radio-copy">
+              <p class="kicker">02 / SHARED DAILY TRANSMISSION</p>
+              <h1>PRESS//.<br />RADIO</h1>
+              <p class="broadcast-line">ONE SONG IS BROADCAST EVERY DAY.</p>
+              <div class="broadcast-status"><span class="pulse-dot"></span><div><small>DAILY BROADCAST / 003</small><strong>SIGNAL DETECTED.</strong><p id="radioStatus">1 TAPE AVAILABLE.</p></div></div>
+              <button class="primary-button" id="receiveButton"><span>RECEIVE</span><span>→</span></button>
+              <dl class="radio-spec"><div><dt>STARTS</dt><dd>00:00 ICT</dd></div><div><dt>ENDS</dt><dd>23:59 ICT</dd></div><div><dt>CHANNEL</dt><dd>001</dd></div></dl>
+            </div>
+            <div class="radio-object">
+              <div class="signal-rings" aria-hidden="true"><i></i><i></i><i></i></div>
+              <div class="sealed-package" id="sealedPackage" hidden aria-hidden="true"><span>P//P</span><small>DAILY PRESS · SIGNAL 003</small><b>IDENTITY ENCRYPTED</b></div>
+            </div>
+          </div>
+          <div class="radio-history"><span>RECENT BROADCASTS</span><div id="radioHistory"></div></div>
+        </section>
+
+        <section class="view shelf-view" data-page="shelf">
+          <img class="shelf-room" src="./assets/images/shelf-room-v012.webp" alt="A dreamy early-2000s listening room with CRT monitors, speakers, tapes, and a softly lit desk" />
+          <div class="shelf-room-fade" aria-hidden="true"></div>
+          <header class="shelf-header"><p class="kicker">03 / PERSONAL MUSIC ARCHIVE</p><h1>MY SHELF</h1><p>Music you chose to keep.</p></header>
+          <div class="physical-shelf">
+            <div class="shelf-label"><span>COLLECTION / SIDE A</span><span id="shelfCount">06 TAPES</span></div>
+            <div class="tape-row" id="tapeShelf" aria-label="Your cassette collection"></div>
+            <div class="shelf-plank" aria-hidden="true"></div>
+          </div>
+          <aside class="shelf-note"><span>SEPTEMBER '26</span><strong>DAILY ARCHIVE</strong><div class="mini-calendar" id="miniCalendar"></div></aside>
+        </section>
+
+        <section class="view settings-view" data-page="settings" aria-labelledby="settingsTitle">
+          <button class="settings-back" data-view="home"><span aria-hidden="true">←</span> Home</button>
+          <header class="settings-heading"><p class="kicker">YOUR LISTENING SPACE</p><h1 id="settingsTitle">Settings</h1></header>
+          <div class="settings-account"><span class="account-mark" aria-hidden="true">P//P</span><div><span class="kicker">LOCAL SESSION</span><h2 id="sessionName">SIGNAL_GUEST</h2><p>Listening on this device.</p></div></div>
+          <div class="settings-actions" aria-label="Session actions">
+            <button class="settings-row" data-view="home"><span><strong>Back to Home</strong><small>Return to today's signal</small></span><span aria-hidden="true">↗</span></button>
+            <button class="settings-row logout-row" id="logoutButton"><span><strong>Log out</strong><small>Return to the Login screen</small></span><span aria-hidden="true">→</span></button>
+          </div>
+          <p class="settings-note">Your saved tapes stay on this device when you log out.</p>
+          <p class="settings-version">PRESS//PAD · V0.1.2</p>
+        </section>
+      </main>
+
+      <nav class="mobile-nav" aria-label="Mobile destinations">
+        <button data-view="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v11h-6v-7H9v7H3Z" /></svg><span>Home</span></button>
+        <button data-view="discover"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7" /><path d="m16 16 5 5" /></svg><span>Discover</span></button>
+        <button data-view="radio"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2" /><path d="M7 7a7 7 0 0 0 0 10M17 7a7 7 0 0 1 0 10M4 4a11 11 0 0 0 0 16M20 4a11 11 0 0 1 0 16" /></svg><span>Radio</span></button>
+        <button data-view="shelf"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M4 4h5v13H4zM12 4h5l3 13h-5z" /></svg><span>Shelf</span></button>
+        <button data-view="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h6m4 0h6M4 17h10m4 0h2" /><circle cx="12" cy="7" r="2" /><circle cx="16" cy="17" r="2" /></svg><span>Settings</span></button>
+      </nav>
+
+      <section class="global-player" id="globalPlayer" hidden aria-label="Now playing">
+        <span class="mini-cover-frame"><img id="miniCover" alt="" /></span>
+        <button class="now-playing" id="openCurrentTrack"><small>NOW PLAYING</small><strong id="miniTitle">—</strong><span id="miniArtist">—</span></button>
+        <button class="round-control" id="globalPlay" aria-label="Play"><span>▶</span></button>
+        <div class="seek-wrap"><span id="currentTime">0:00</span><input id="seekInput" type="range" min="0" max="100" value="0" aria-label="Seek through track" /><span id="durationTime">0:00</span></div>
+        <label class="volume-wrap"><span>VOL</span><input id="volumeInput" type="range" min="0" max="100" value="70" aria-label="Volume" /></label>
+        <button class="eject-control" id="globalEject">EJECT ↑</button>
+      </section>
+
+      <footer class="app-footer"><span>PRESS//PAD · V0.1.2</span><span>DISCOVERY BECOMES MEMORY.</span><span>P//P SYSTEM · 2026</span></footer>
+    </div>
+
+    <dialog class="ritual-dialog" id="ritualDialog">
+      <div class="ritual-shell">
+        <header><div><span id="ritualLabel">TAPE SELECTED</span><strong id="ritualTrackTitle">—</strong></div><button id="closeRitual" aria-label="Close">×</button></header>
+        <div class="ritual-stage" id="ritualStage">
+          <div class="case-scene state-sealed" id="caseScene">
+            <div class="cover-panel"><img id="ritualCover" alt="" /><span class="cover-credit" id="ritualCredit"></span></div>
+            <div class="case-back"><span>P//P</span><small>COMMON PRESS</small></div>
+            <div class="cassette" id="ritualCassette"><div class="cassette-label"><span class="reel"></span><strong id="cassetteTitle">—</strong><span class="reel"></span></div><small>SIDE A · PRESS//PAD</small></div>
+          </div>
+          <img class="player-device" src="./assets/images/player-device-v012.webp" alt="Original translucent PRESS//PAD cassette player" />
+          <div class="player-slot" aria-hidden="true"></div>
+        </div>
+        <aside class="ritual-controls">
+          <p id="ritualInstruction">TODAY'S TAPE IS SEALED.</p>
+          <button class="primary-button" id="ritualAction"><span>REVEAL COVER</span><span>→</span></button>
+          <div class="playing-actions" id="playingActions" hidden><button class="primary-button" id="ritualPlay"><span>PAUSE</span><span>Ⅱ</span></button><button class="outline-button" id="keepTape">KEEP TAPE</button><button class="text-button" id="ritualEject">EJECT ↑</button></div>
+          <button class="skip-button" id="skipRitual" hidden>SKIP TO PLAYER</button>
+        </aside>
+      </div>
+    </dialog>
+
+    <dialog class="artist-dialog" id="artistDialog"><article><button id="closeArtist" aria-label="Close">×</button><span class="kicker" id="artistGenre">ARTIST FILE</span><h2 id="artistName">—</h2><p id="artistBio">—</p><div id="artistTracks"></div></article></dialog>
+
+    <audio id="audioEngine" preload="metadata"></audio>
+    <output class="toast" id="toast" aria-live="polite"></output>
+
+    <script src="./data/catalog.js"></script>
+    <script src="./js/app.js"></script>
+  </body>
+</html>

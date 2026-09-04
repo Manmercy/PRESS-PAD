@@ -1,0 +1,101 @@
+{
+  "codec": "AAC-LC, 80 kbps target, 32 kHz stereo; lossy preview copies",
+  "tracks": [
+    {
+      "source": "Angel Shrine (1).mp3",
+      "file": "assets/music/Angel Shrine (1).m4a",
+      "originalDuration": 281.328,
+      "duration": 281.2935,
+      "bytes": 2834327,
+      "sha256": "8fd0005e61af00440aab9453de77d527912d8c1e404ed69cfa48524e21601585"
+    },
+    {
+      "source": "Angel Shrine.mp3",
+      "file": "assets/music/Angel Shrine.m4a",
+      "originalDuration": 158.136,
+      "duration": 158.0935,
+      "bytes": 1594617,
+      "sha256": "fda8a99493d126c5766f1c4ae53e2d931915656a32b03a491535550d7de418b5"
+    },
+    {
+      "source": "Dragon Lion War (1).mp3",
+      "file": "assets/music/Dragon Lion War (1).m4a",
+      "originalDuration": 150,
+      "duration": 149.9735,
+      "bytes": 1475453,
+      "sha256": "a5236d4716640686d05eb984f940eacb37e83c3afd6bd52c97840d50cbc5612c"
+    },
+    {
+      "source": "Dragon Lion War.mp3",
+      "file": "assets/music/Dragon Lion War.m4a",
+      "originalDuration": 75.048,
+      "duration": 75.0135,
+      "bytes": 764296,
+      "sha256": "38dd64cb3d9b1719020f664cd0c64b0bb865ba6b29d5bbf79999acab43435eec"
+    },
+    {
+      "source": "Fairy Forest (1).mp3",
+      "file": "assets/music/Fairy Forest (1).m4a",
+      "originalDuration": 214.776,
+      "duration": 214.7335,
+      "bytes": 2139955,
+      "sha256": "ce322b6546eb7aa19dc6cd30d655c8248c32bb170d7f424de85d953696bcaea7"
+    },
+    {
+      "source": "Fairy Forest.mp3",
+      "file": "assets/music/Fairy Forest.m4a",
+      "originalDuration": 148.32,
+      "duration": 148.2935,
+      "bytes": 1478350,
+      "sha256": "d8c41af57835ea67543120eba2fefedd0c80f6be39fc2a7c8e8e9082d29d8995"
+    },
+    {
+      "source": "Login Screen Memories (1).mp3",
+      "file": "assets/music/Login Screen Memories (1).m4a",
+      "originalDuration": 141,
+      "duration": 140.9735,
+      "bytes": 1406656,
+      "sha256": "80e556355ef908a4311045525b4df29b43d0450554f6cd72065cd65b3e66dbf5"
+    },
+    {
+      "source": "Login Screen Memories.mp3",
+      "file": "assets/music/Login Screen Memories.m4a",
+      "originalDuration": 249.48,
+      "duration": 249.4535,
+      "bytes": 2486575,
+      "sha256": "0ee5ae94ad5213943bdae69f5908cc47cbd37dd89a53d80e098d8731ea6ac58c"
+    },
+    {
+      "source": "Pixel Tavern (1).mp3",
+      "file": "assets/music/Pixel Tavern (1).m4a",
+      "originalDuration": 198.048,
+      "duration": 198.0135,
+      "bytes": 1970167,
+      "sha256": "3bd886ce1c731ad0c335bc2c63656f5d842b89c135cde50efa245382b3bf3b63"
+    },
+    {
+      "source": "Pixel Tavern.mp3",
+      "file": "assets/music/Pixel Tavern.m4a",
+      "originalDuration": 142.2,
+      "duration": 142.1735,
+      "bytes": 1413435,
+      "sha256": "eb725790b7c7cef1cfee90ea7c8d039ad39cc46485d97ab11f922e5ed106ef30"
+    },
+    {
+      "source": "Quest Log After Dark (1).mp3",
+      "file": "assets/music/Quest Log After Dark (1).m4a",
+      "originalDuration": 203.232,
+      "duration": 203.199969,
+      "bytes": 2036990,
+      "sha256": "04be6b5ef86049962e1ed75bd89e1b68469ef0e307f177ab70039c7d5a51dd40"
+    },
+    {
+      "source": "Quest Log After Dark.mp3",
+      "file": "assets/music/Quest Log After Dark.m4a",
+      "originalDuration": 129.048,
+      "duration": 129.0135,
+      "bytes": 1288556,
+      "sha256": "73a75b3966d814cc493af96e239ce3c17a0bfc72dc69e292993916b8637f0b14"
+    }
+  ]
+}

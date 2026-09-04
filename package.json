@@ -1,0 +1,10 @@
+{
+  "name": "press-pad-v0.1.2-html",
+  "version": "0.1.2",
+  "private": true,
+  "description": "Standalone HTML prototype for PRESS//PAD v0.1.2",
+  "scripts": {
+    "check": "node --check js/app.js && node --check data/catalog.js && node tests/validate.mjs && node tests/mobile-flow.mjs",
+    "test": "node tests/validate.mjs && node tests/mobile-flow.mjs"
+  }
+}
