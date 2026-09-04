@@ -34,7 +34,31 @@ for (const track of catalog) {
   assert.ok(rendered.includes(`data-play-track="${track.id}"`));
   assert.ok(rendered.includes(`<strong>${track.title}</strong>`));
   assert.ok(rendered.includes(`<span>${track.artist}</span>`));
+  assert.ok(rendered.includes(`<img class="shelf-backdrop" src="${track.cover}" alt="" aria-hidden="true"`));
+  assert.ok(rendered.includes(`<span class="shelf-thumb" aria-hidden="true"><img src="${track.cover}"`));
 }
+const css = fs.readFileSync(new URL('../css/styles.css', import.meta.url), 'utf8');
+assert.match(css, /\.shelf-backdrop \{[^}]*filter: blur\(3px\)/);
+assert.match(css, /\.shelf-tape \{ isolation: isolate; \}/);
+assert.ok(app.includes("attachCoverFallback($('.shelf-thumb img', tape), track)"));
+// Even an all-white image stays dark enough under this overlay for white text.
+const overlayRGB = [9, 15, 32].map(channel => (channel * .62 + 255 * .38) / 255);
+const linear = overlayRGB.map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4);
+assert.ok(1.05 / (linear[0] * .2126 + linear[1] * .7152 + linear[2] * .0722 + .05) >= 4.5);
+// Background failure leaves the existing track color, independently of the thumbnail fallback.
+const background = { complete: true, naturalWidth: 0, hidden: false };
+const thumbnail = {};
+let attachedTo;
+shelf.$$ = () => [{ dataset: { playTrack: catalog[0].id } }];
+shelf.$ = (selector) => selector === '.shelf-backdrop' ? background : selector === '.shelf-thumb img' ? thumbnail : elements[selector];
+shelf.attachCoverFallback = img => { attachedTo = img; };
+vm.runInContext('renderShelf()', shelf);
+assert.equal(attachedTo, thumbnail);
+assert.equal(background.hidden, true);
+background.hidden = false;
+background.onerror();
+assert.equal(background.hidden, true);
+shelf.$$ = () => [];
 shelf.shelfIds = [catalog[11].id];
 vm.runInContext('renderShelf()', shelf);
 assert.match(elements['#tapeShelf'].innerHTML, /12 <span>COM/); // Stable catalog number, not shelf order.

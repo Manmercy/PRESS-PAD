@@ -276,13 +276,17 @@
     $('#shelfCount').textContent = `${String(tracks.length).padStart(2, '0')} TAPES`;
     $('#tapeShelf').innerHTML = tracks.length ? tracks.map((track) => `
       <button class="shelf-tape" style="--spine-color:${track.spineColor}" data-play-track="${track.id}" aria-label="Select ${escapeHtml(track.title)} by ${escapeHtml(track.artist)}" title="${escapeHtml(track.title)} — ${escapeHtml(track.artist)}">
+        <img class="shelf-backdrop" src="${track.cover}" alt="" aria-hidden="true" loading="lazy" />
         <span class="shelf-thumb" aria-hidden="true"><img src="${track.cover}" alt="" loading="lazy" /></span>
         <span class="shelf-spine"><strong>${escapeHtml(track.title)}</strong><span>${escapeHtml(track.artist)}</span></span>
         <small class="shelf-number" aria-hidden="true">${String(track.trackNumber).padStart(2, '0')} <span>COM</span></small>
       </button>`).join('') : '<p class="shelf-empty">Your shelf is empty. Find your first tape in Discover.</p>';
     $$('.shelf-tape').forEach((tape) => {
       const track = catalog.find((entry) => entry.id === tape.dataset.playTrack);
-      attachCoverFallback($('img', tape), track);
+      attachCoverFallback($('.shelf-thumb img', tape), track);
+      const backdrop = $('.shelf-backdrop', tape);
+      backdrop.onerror = () => { backdrop.hidden = true; };
+      if (backdrop.complete && backdrop.naturalWidth === 0) backdrop.hidden = true;
     });
 
     shelfCalendar.render();
