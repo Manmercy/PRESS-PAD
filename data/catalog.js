@@ -7,8 +7,9 @@ window.PRESSPAD_CATALOG = [
     illustrator: 'KAGAMI NERO',
     duration: '03:42',
     audio: './assets/music/Dragon Lion War.m4a',
-    cover: './assets/images/releases/lionfall-common.png',
+    cover: './assets/images/releases/lionfall-common.webp',
     palette: '#ba5731',
+    spineColor: '#9b3d25',
     bio: 'A cinematic signal unit transmitting scorched mythology through brass, percussion, and synthetic choirs.',
   },
   {
@@ -19,8 +20,9 @@ window.PRESSPAD_CATALOG = [
     illustrator: 'KAGAMI NERO',
     duration: '04:11',
     audio: './assets/music/Dragon Lion War (1).m4a',
-    cover: './assets/images/releases/ashes-of-the-dragon-common.png',
+    cover: './assets/images/releases/ashes-of-the-dragon-common.webp',
     palette: '#81402f',
+    spineColor: '#713341',
     bio: 'A cinematic signal unit transmitting scorched mythology through brass, percussion, and synthetic choirs.',
   },
   {
@@ -31,8 +33,9 @@ window.PRESSPAD_CATALOG = [
     illustrator: 'UKIYO MEI',
     duration: '03:16',
     audio: './assets/music/Fairy Forest.m4a',
-    cover: './assets/images/releases/fairy-forest-common.png',
+    cover: './assets/images/releases/fairy-forest-common.webp',
     palette: '#8dbfb0',
+    spineColor: '#236452',
     bio: 'Two forest listeners collecting tiny melodies from rain, moss, glowcaps, and half-remembered dreams.',
   },
   {
@@ -43,8 +46,9 @@ window.PRESSPAD_CATALOG = [
     illustrator: 'UKIYO MEI',
     duration: '03:35',
     audio: './assets/music/Fairy Forest (1).m4a',
-    cover: './assets/images/releases/glowcap-garden-common.png',
+    cover: './assets/images/releases/glowcap-garden-common.webp',
     palette: '#bb91c9',
+    spineColor: '#744380',
     bio: 'Two forest listeners collecting tiny melodies from rain, moss, glowcaps, and half-remembered dreams.',
   },
   {
@@ -55,8 +59,9 @@ window.PRESSPAD_CATALOG = [
     illustrator: 'HANEUL',
     duration: '04:08',
     audio: './assets/music/Angel Shrine.m4a',
-    cover: './assets/images/releases/angel-shrine-common.png',
+    cover: './assets/images/releases/angel-shrine-common.webp',
     palette: '#d1b977',
+    spineColor: '#756021',
     bio: 'An anonymous sacred-technology ensemble recording resonant spaces, silver mechanisms, and wordless rites.',
   },
   {
@@ -67,8 +72,9 @@ window.PRESSPAD_CATALOG = [
     illustrator: 'HANEUL',
     duration: '03:54',
     audio: './assets/music/Angel Shrine (1).m4a',
-    cover: './assets/images/releases/white-reliquary-common.png',
+    cover: './assets/images/releases/white-reliquary-common.webp',
     palette: '#b8b7ad',
+    spineColor: '#515e66',
     bio: 'An anonymous sacred-technology ensemble recording resonant spaces, silver mechanisms, and wordless rites.',
   },
   {
@@ -79,8 +85,9 @@ window.PRESSPAD_CATALOG = [
     illustrator: 'YUIN',
     duration: '03:28',
     audio: './assets/music/Quest Log After Dark.m4a',
-    cover: './assets/images/releases/quest-log-after-dark-common.png',
+    cover: './assets/images/releases/quest-log-after-dark-common.webp',
     palette: '#ce843f',
+    spineColor: '#874d26',
     bio: 'A nocturnal duo writing low-lit travel music for inns, journals, potions, and roads without maps.',
   },
   {
@@ -91,8 +98,9 @@ window.PRESSPAD_CATALOG = [
     illustrator: 'YUIN',
     duration: '04:02',
     audio: './assets/music/Quest Log After Dark (1).m4a',
-    cover: './assets/images/releases/innlight-common.png',
+    cover: './assets/images/releases/innlight-common.webp',
     palette: '#32466f',
+    spineColor: '#32466f',
     bio: 'A nocturnal duo writing low-lit travel music for inns, journals, potions, and roads without maps.',
   },
   {
@@ -103,8 +111,9 @@ window.PRESSPAD_CATALOG = [
     illustrator: 'DOTMONO',
     duration: '03:09',
     audio: './assets/music/Pixel Tavern.m4a',
-    cover: './assets/images/releases/pixel-tavern-common.png',
+    cover: './assets/images/releases/pixel-tavern-common.webp',
     palette: '#df7535',
+    spineColor: '#a34425',
     bio: 'A tiny late-night station broadcasting safe-room warmth through low-poly instruments and worn cartridges.',
   },
   {
@@ -115,8 +124,9 @@ window.PRESSPAD_CATALOG = [
     illustrator: 'DOTMONO',
     duration: '03:47',
     audio: './assets/music/Pixel Tavern (1).m4a',
-    cover: './assets/images/releases/last-save-before-dawn-common.png',
+    cover: './assets/images/releases/last-save-before-dawn-common.webp',
     palette: '#617da0',
+    spineColor: '#346878',
     bio: 'A tiny late-night station broadcasting safe-room warmth through low-poly instruments and worn cartridges.',
   },
   {
@@ -127,8 +137,9 @@ window.PRESSPAD_CATALOG = [
     illustrator: '204LAB',
     duration: '03:58',
     audio: './assets/music/Login Screen Memories.m4a',
-    cover: './assets/images/releases/login-screen-memories-common.png',
+    cover: './assets/images/releases/login-screen-memories-common.webp',
     palette: '#5366d1',
+    spineColor: '#4051aa',
     bio: 'A system-melancholy project tracing the loneliness and optimism of personal computers waking before dawn.',
   },
   {
@@ -139,15 +150,16 @@ window.PRESSPAD_CATALOG = [
     illustrator: '204LAB',
     duration: '04:20',
     audio: './assets/music/Login Screen Memories (1).m4a',
-    cover: './assets/images/releases/welcome-back-player-common.png',
+    cover: './assets/images/releases/welcome-back-player-common.webp',
     palette: '#6852a2',
+    spineColor: '#614591',
     bio: 'A system-melancholy project tracing the loneliness and optimism of personal computers waking before dawn.',
   },
 ].map((track, index) => ({
   ...track,
   trackNumber: index + 1,
   editions: {
-    common: { id: `${track.id}-common`, label: 'COMMON PRESS', supply: 5000, price: 29, shell: 'clear' },
+    common: { id: `${track.id}-common`, label: 'COMMON PRESS', supply: 5000, price: 1, currency: 'USD', shell: 'clear' },
     rare: { id: `${track.id}-rare`, label: 'RARE PRESS', supply: 240, price: 299, shell: 'signal-shift', serial: `#${String(index + 23).padStart(3, '0')} / 240` },
   },
 }));
@@ -158,3 +170,12 @@ window.PRESSPAD_ARTISTS = [...new Map(window.PRESSPAD_CATALOG.map((track) => [tr
   bio: track.bio,
   color: track.palette,
 }])).values()];
+
+// Explicit prototype schedule, not real broadcast logs or purchase dates.
+// Dates stay fixed on reload/reset; replace with actual release records when available.
+window.PRESSPAD_BROADCASTS = [
+  { date: '2026-09-03', trackId: 'quest-log-after-dark' },
+  { date: '2026-09-02', trackId: 'innlight' },
+  { date: '2026-09-01', trackId: 'pixel-tavern' },
+  { date: '2026-08-31', trackId: 'last-save-before-dawn' },
+];

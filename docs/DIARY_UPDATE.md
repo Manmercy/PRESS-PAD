@@ -1,0 +1,10 @@
+# Mobile Login and personal diary
+
+- Mobile Login is vertically centered using the visible viewport height and safe-area padding. Short screens can scroll; the window no longer deliberately anchors at the bottom.
+- BGM still attempts audible autoplay at page load. Its button reads AUTO while pending/blocked, ON only when playing, OFF after the user stops it, and RETRY for file errors. Ordinary click/tap/keyboard interaction retries automatically. Browser permission restrictions cannot be bypassed; removing the instruction is not a promise of sound before interaction.
+- Shelf calendar is centered, Monday-first, sized to its container, with real month lengths, leap years, previous/next month and Today. Click a day to view acquisitions and edit a note of up to 2,000 characters. Dots distinguish purchases, Radio and personal notes.
+- New $1 purchases record a purchase event atomically with wallet/ownership. Receiving the prototype's daily Radio tape adds it for free and records a Radio event. Already-owned tapes are opened without duplicate acquisition or charge. The fixed prototype daily track remains unchanged; this does not introduce a live daily feed.
+- Existing Shelf ownership and balance are preserved. Older tapes have no known acquisition date and are not backdated. New events use the device's local calendar date, independent from the fixed demo broadcast schedule.
+- Diary and notes use the existing device-local account. They are not cloud accounts or cross-device sync. Different origins (file preview, localhost, GitHub Pages) have separate storage. Save Note persists edits; empty text removes a note. Closing a dirty editor asks before discarding. Storage errors keep the draft; concurrent same-day edits are detected instead of silently overwritten.
+- Reset local data explicitly clears diary/notes along with the collection and restores demo credits. No user data was reset during development.
+- Validation: code/static checks and unit tests of actual handlers, persistence, date math, safe text, write failure, duplicate handling, and regression flows. No visual browser QA or real-device autoplay guarantee.

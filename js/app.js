@@ -5,6 +5,9 @@
   const artists = window.PRESSPAD_ARTISTS;
   const dailyTrack = catalog.find((track) => track.id === 'login-screen-memories');
   const defaultShelf = ['login-screen-memories', 'fairy-forest', 'angel-shrine', 'quest-log-after-dark', 'pixel-tavern', 'lionfall'];
+  const collection = window.createPresspadCollection(localStorage, catalog.map((track) => track.id), defaultShelf);
+  const shelfCalendar = window.createPresspadCalendar(collection, catalog);
+  const shelfQueue = window.createPresspadShelfQueue();
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -29,22 +32,49 @@
   let ritualTrack = dailyTrack;
   let ritualIsDaily = false;
   let ritualTimers = [];
+  let walletCents = 0;
   let shelfIds = readShelf();
-  let receivedDaily = localStorage.getItem('presspad-v012-daily') === 'kept';
+  let receivedDaily = shelfIds.includes(dailyTrack.id);
   let toastTimer;
   let entryMusicEnabled = true;
+  let entryMusicState = 'ready';
+  let playbackRequest = 0;
 
   function readShelf() {
     try {
-      const saved = JSON.parse(localStorage.getItem('presspad-v012-shelf') || 'null');
-      return Array.isArray(saved) && saved.length ? saved : defaultShelf;
+      const saved = collection.read();
+      walletCents = saved.balanceCents;
+      return saved.shelfIds;
     } catch {
-      return defaultShelf;
+      walletCents = 0;
+      return [];
     }
   }
 
-  function writeShelf() {
-    localStorage.setItem('presspad-v012-shelf', JSON.stringify(shelfIds));
+  function refreshAccount() {
+    shelfIds = readShelf();
+    receivedDaily = shelfIds.includes(dailyTrack.id);
+    $('#walletBalance').textContent = `$${(walletCents / 100).toFixed(2)}`;
+  }
+
+  function canPlay(track) {
+    refreshAccount();
+    if (track && shelfIds.includes(track.id)) return true;
+    showToast('BUY THIS TAPE FOR $1.00 BEFORE LISTENING.');
+    return false;
+  }
+
+  function refreshPurchaseState() {
+    const owned = shelfIds.includes(ritualTrack.id);
+    const sealed = caseScene.classList.contains('state-sealed');
+    const playing = caseScene.classList.contains('state-playing');
+    $('#buyTape').hidden = owned;
+    $('#buyTape').disabled = walletCents < 100;
+    $('#buyTape').textContent = walletCents < 100 ? 'NOT ENOUGH DEMO CREDIT' : 'BUY TAPE · $1.00';
+    $('#purchaseNote').textContent = owned ? 'IN YOUR SHELF · READY TO PLAY' : `Buy to unlock playback · Wallet $${(walletCents / 100).toFixed(2)} · Demo credits`;
+    $('#keepTape').textContent = 'IN YOUR SHELF ✓';
+    ritualAction.hidden = playing || (!owned && !sealed);
+    if (!owned && !sealed) $('#ritualInstruction').textContent = 'THIS TAPE IS WAITING FOR YOU.';
   }
 
   function escapeHtml(value) {
@@ -92,17 +122,35 @@
 
   function updateEntryMusicButton() {
     const isPlaying = !entryMusic.paused;
-    entryMusicToggle.textContent = isPlaying ? 'BGM / ON' : entryMusicEnabled ? 'BGM / START' : 'BGM / OFF';
+    entryMusicToggle.textContent = isPlaying ? 'BGM / ON' : !entryMusicEnabled ? 'BGM / OFF' : entryMusicState === 'error' ? 'BGM / RETRY' : 'BGM / AUTO';
     entryMusicToggle.setAttribute('aria-pressed', String(isPlaying));
+    entryMusicToggle.title = entryMusicState === 'error' ? 'Music could not load. Tap to retry.' : entryMusicState === 'blocked' ? 'Your browser requires a tap before playing sound.' : isPlaying ? 'Turn off login music' : 'Play login music';
   }
 
   async function startEntryMusic() {
-    if (!entryMusicEnabled || entryScreen.hidden) return;
+    if (!entryMusicEnabled || entryScreen.hidden || !entryMusic.paused) return;
     try {
       await entryMusic.play();
-    } catch {
-      // Browsers may require the first pointer interaction before audible playback.
+      // A pending play request must not leak music into Home or undo BGM / OFF.
+      if (!entryMusicEnabled || entryScreen.hidden) entryMusic.pause();
+      entryMusicState = 'ready';
+    } catch (error) {
+      if (error.name !== 'AbortError' && entryMusic.paused) {
+        entryMusicState = error.name === 'NotAllowedError' ? 'blocked' : 'error';
+      }
     }
+    updateEntryMusicButton();
+  }
+
+  function retryEntryMusicOnGesture(event) {
+    if (event.target.closest?.('#entryMusicToggle') || event.isTrusted === false) return;
+    if (event.type === 'keydown' && (event.repeat || event.ctrlKey || event.metaKey || event.altKey || ['Escape', 'Shift', 'Control', 'Alt', 'Meta'].includes(event.key))) return;
+    startEntryMusic();
+  }
+
+  function handleEntryMusicPlay() {
+    if (!entryMusicEnabled || entryScreen.hidden) entryMusic.pause();
+    else entryMusicState = 'ready';
     updateEntryMusicButton();
   }
 
@@ -162,6 +210,11 @@
     };
 
     img.onerror = showFallback;
+    img.onload = () => {
+      img.hidden = false;
+      frame.classList.remove('cover-fallback');
+      $('.fallback-copy', frame)?.remove();
+    };
     queueMicrotask(() => {
       if (img.complete && img.naturalWidth === 0) showFallback();
     });
@@ -171,13 +224,13 @@
     const featured = dailyTrack;
     $('#featuredRelease').innerHTML = `
       <div class="featured-cover-wrap"><div class="featured-cover-frame"><img class="featured-cover" src="${featured.cover}" alt="Cover artwork for ${escapeHtml(featured.title)}" /></div></div>
-      <div class="featured-info"><p class="kicker">STAFF PICK / NEW MUSIC</p><h2>${escapeHtml(featured.title)}</h2><p>${escapeHtml(featured.genre)}. A quiet transmission from the blue room, made from the memory of machines waking before their users.</p><div class="credit-line"><button data-artist="${escapeHtml(featured.artist)}">Music by ${escapeHtml(featured.artist)} ↗</button><span>Illustration by ${escapeHtml(featured.illustrator)}</span></div><div class="edition-pills"><span>COMMON PRESS · 29 THB</span><span>RARE PRESS · ${featured.editions.rare.serial}</span><span>${featured.duration}</span></div><button class="primary-button" data-play-track="${featured.id}"><span>OPEN TAPE</span><span>▶</span></button></div>`;
+      <div class="featured-info"><p class="kicker">STAFF PICK / NEW MUSIC</p><h2>${escapeHtml(featured.title)}</h2><p>${escapeHtml(featured.genre)}. A quiet transmission from the blue room, made from the memory of machines waking before their users.</p><div class="credit-line"><button data-artist="${escapeHtml(featured.artist)}">Music by ${escapeHtml(featured.artist)} ↗</button><span>Illustration by ${escapeHtml(featured.illustrator)}</span></div><div class="edition-pills"><span>COMMON PRESS · $1.00</span><span>DEMO CREDITS</span><span>${featured.duration}</span></div><button class="primary-button" data-play-track="${featured.id}"><span>${shelfIds.includes(featured.id) ? 'OPEN TAPE' : 'BUY TAPE · $1.00'}</span><span>→</span></button></div>`;
     attachCoverFallback($('.featured-cover'), featured);
 
     $('#releaseGrid').innerHTML = catalog.map((track) => `
       <button class="release-card" data-play-track="${track.id}" aria-label="Open ${escapeHtml(track.title)} by ${escapeHtml(track.artist)}">
-        <span class="cover-frame" style="--cover-color:${track.palette}"><img src="${track.cover}" alt="Cover artwork for ${escapeHtml(track.title)}" /></span>
-        <span class="card-edition"><span>COMMON PRESS</span><span>${track.duration}</span></span>
+        <span class="cover-frame" style="--cover-color:${track.palette}"><img src="${track.cover}" alt="Cover artwork for ${escapeHtml(track.title)}" loading="lazy" decoding="async" /></span>
+        <span class="card-edition"><span>${shelfIds.includes(track.id) ? 'IN YOUR SHELF' : 'BUY TAPE · $1.00'}</span><span>${track.duration}</span></span>
         <h3>${escapeHtml(track.title)}</h3><p>${escapeHtml(track.artist)}</p><p class="illustrator">Illustration by ${escapeHtml(track.illustrator)}</p>
       </button>`).join('');
     $$('.release-card').forEach((card) => {
@@ -190,9 +243,22 @@
   }
 
   function renderRadioHistory() {
-    $('#radioHistory').innerHTML = catalog.slice(6, 10).map((track) => `
-      <button class="history-item" data-play-track="${track.id}"><span class="history-cover" style="--cover-color:${track.palette}"><img src="${track.cover}" alt="" /></span><div><strong>${escapeHtml(track.title)}</strong><span>${escapeHtml(track.artist)}</span><span>ARCHIVED</span></div></button>`).join('');
-    $$('.history-item').forEach((item) => {
+    const broadcasts = [...(window.PRESSPAD_BROADCASTS || [])]
+      .filter((entry) => /^\d{4}-\d{2}-\d{2}$/.test(entry.date) && Number.isFinite(Date.parse(`${entry.date}T12:00:00Z`)) && new Date(`${entry.date}T12:00:00Z`).toISOString().slice(0, 10) === entry.date && catalog.some((track) => track.id === entry.trackId))
+      .sort((a, b) => b.date.localeCompare(a.date));
+    $('#radioHistory').innerHTML = broadcasts.map((entry) => {
+      const track = catalog.find((item) => item.id === entry.trackId);
+      const date = new Date(`${entry.date}T12:00:00Z`);
+      const day = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' });
+      const weekday = date.toLocaleDateString('en-GB', { weekday: 'short', timeZone: 'UTC' });
+      const owned = shelfIds.includes(track.id);
+      return `<tr class="broadcast-row" role="row" data-play-track="${track.id}">
+        <td class="broadcast-date" role="cell"><time datetime="${entry.date}"><strong>${day}</strong><span>${date.getUTCFullYear()} · ${weekday}</span></time></td>
+        <td class="broadcast-cover-cell" role="cell"><span class="history-cover" style="--cover-color:${track.palette}"><img src="${track.cover}" alt="${escapeHtml(track.title)} cover" loading="lazy" decoding="async" width="72" height="90" /></span></td>
+        <td class="broadcast-detail" role="cell"><button class="broadcast-open" data-play-track="${track.id}" aria-label="Open ${escapeHtml(track.title)}, broadcast ${day} ${date.getUTCFullYear()}">${escapeHtml(track.title)} <span aria-hidden="true">↗</span></button><p>${escapeHtml(track.artist)}</p><small>${escapeHtml(track.genre)} · ${track.duration}</small><span class="broadcast-ownership ${owned ? 'is-owned' : ''}">${owned ? 'IN YOUR SHELF ✓' : 'BUY TAPE · $1.00'}</span></td>
+      </tr>`;
+    }).join('') || '<tr role="row"><td role="cell" colspan="3" class="broadcast-empty">No past broadcasts yet.</td></tr>';
+    $$('.broadcast-row').forEach((item) => {
       const track = catalog.find((entry) => entry.id === item.dataset.playTrack);
       attachCoverFallback($('img', item), track);
     });
@@ -202,20 +268,25 @@
     $('#radioStatus').textContent = receivedDaily ? 'TAPE RECEIVED / ARCHIVED.' : '1 TAPE AVAILABLE.';
     $('#receiveButton').querySelector('span').textContent = receivedDaily ? 'OPEN TODAY\'S TAPE' : 'RECEIVE';
     $('#sealedPackage').classList.toggle('is-received', receivedDaily);
+    renderRadioHistory();
   }
 
   function renderShelf() {
     const tracks = shelfIds.map((id) => catalog.find((track) => track.id === id)).filter(Boolean);
     $('#shelfCount').textContent = `${String(tracks.length).padStart(2, '0')} TAPES`;
-    $('#tapeShelf').innerHTML = tracks.map((track, index) => `
-      <button class="shelf-tape ${index === 2 ? 'rare' : ''}" data-play-track="${track.id}" aria-label="Select ${escapeHtml(track.title)}"><img src="${track.cover}" alt="" /><strong>${escapeHtml(track.title)}</strong><small>${index === 2 ? 'RARE' : 'COMMON'} / ${String(index + 1).padStart(2, '0')}</small></button>`).join('');
+    $('#tapeShelf').innerHTML = tracks.length ? tracks.map((track) => `
+      <button class="shelf-tape" style="--spine-color:${track.spineColor}" data-play-track="${track.id}" aria-label="Select ${escapeHtml(track.title)} by ${escapeHtml(track.artist)}" title="${escapeHtml(track.title)} — ${escapeHtml(track.artist)}">
+        <span class="shelf-thumb" aria-hidden="true"><img src="${track.cover}" alt="" loading="lazy" /></span>
+        <span class="shelf-spine"><strong>${escapeHtml(track.title)}</strong><span>${escapeHtml(track.artist)}</span></span>
+        <small class="shelf-number" aria-hidden="true">${String(track.trackNumber).padStart(2, '0')} <span>COM</span></small>
+      </button>`).join('') : '<p class="shelf-empty">Your shelf is empty. Find your first tape in Discover.</p>';
     $$('.shelf-tape').forEach((tape) => {
       const track = catalog.find((entry) => entry.id === tape.dataset.playTrack);
       attachCoverFallback($('img', tape), track);
     });
 
-    const keptDays = receivedDaily ? [1, 2, 3, 5, 8, 9, 17, 24, 30] : [1, 2, 5, 8, 9, 17, 24, 30];
-    $('#miniCalendar').innerHTML = Array.from({ length: 30 }, (_, index) => index + 1).map((day) => `<span class="${keptDays.includes(day) ? 'kept' : [4, 11, 18].includes(day) ? 'missed' : ''}">${day}</span>`).join('');
+    shelfCalendar.render();
+    updateShelfPlayButton();
   }
 
   function openArtist(name) {
@@ -237,6 +308,8 @@
 
   function setRitualState(state, instruction) {
     caseScene.className = `case-scene state-${state}`;
+    ritualDialog.dataset.ritualState = state;
+    $('#playingArtwork').hidden = state !== 'playing';
     $('#ritualInstruction').textContent = instruction;
   }
 
@@ -246,32 +319,50 @@
 
   function openRitual(track, daily = false, initialState = null) {
     clearRitualTimers();
+    refreshAccount();
     ritualTrack = track;
     ritualIsDaily = daily;
     $('#ritualTrackTitle').textContent = track.title;
     const ritualCover = $('#ritualCover');
     ritualCover.alt = `Cover artwork for ${track.title}`;
-    attachCoverFallback(ritualCover, track);
+    ritualCover.onerror = null;
     ritualCover.src = track.cover;
+    attachCoverFallback(ritualCover, track);
+    const playingCover = $('#playingCover');
+    playingCover.onerror = null;
+    playingCover.src = track.cover;
+    playingCover.alt = `Cover artwork for ${track.title}`;
+    attachCoverFallback(playingCover, track);
+    $('#playingCoverTitle').textContent = track.title;
+    $('#playingCoverArtist').textContent = track.artist;
+    const cassetteArt = $('#cassetteArt');
+    cassetteArt.hidden = false;
+    cassetteArt.onerror = () => { cassetteArt.hidden = true; };
+    cassetteArt.src = track.cover;
+    $('#ritualCassette').style.setProperty('--tape-color', track.palette);
     $('#ritualCredit').textContent = `Music by ${track.artist} · Illustration by ${track.illustrator}`;
     $('#cassetteTitle').textContent = track.title;
     skipRitual.hidden = true;
-    const state = initialState || (daily && !receivedDaily ? 'sealed' : 'cover');
+    const owned = shelfIds.includes(track.id);
+    const state = initialState === 'playing' && !owned ? 'cover' : initialState || (daily && !receivedDaily ? 'sealed' : 'cover');
+    if (!owned) audio.pause();
     const instructions = {
       sealed: 'TODAY\'S TAPE IS SEALED.',
       cover: 'CLICK THE COVER TO OPEN THE CASE.',
       playing: 'MEDIA LOCKED. PLAYBACK ACTIVE.',
     };
-    $('#keepTape').textContent = shelfIds.includes(track.id) ? 'ARCHIVED ✓' : 'KEEP TAPE';
     playingActions.hidden = state !== 'playing';
     ritualAction.hidden = state === 'playing';
     setRitualState(state, instructions[state] || instructions.cover);
     setRitualButton(state === 'sealed' ? 'REVEAL COVER' : 'OPEN CASE');
+    refreshPurchaseState();
     $('#ritualLabel').textContent = daily ? 'DAILY BROADCAST / 003' : 'TAPE SELECTED / COMMON PRESS';
     if (!ritualDialog.open) ritualDialog.showModal();
+    updatePlayer();
   }
 
   function beginInsertion() {
+    if (!canPlay(ritualTrack)) { refreshPurchaseState(); return; }
     clearRitualTimers();
     ritualAction.hidden = true;
     skipRitual.hidden = false;
@@ -285,6 +376,7 @@
 
   function completeInsertion() {
     clearRitualTimers();
+    if (!canPlay(ritualTrack)) { openRitual(ritualTrack); return; }
     setRitualState('playing', 'MEDIA LOCKED. PLAYBACK ACTIVE.');
     skipRitual.hidden = true;
     ritualAction.hidden = true;
@@ -293,15 +385,21 @@
   }
 
   function startTrack(track) {
+    if (!canPlay(track)) return;
+    if (shelfQueue.current() && shelfQueue.current() !== track.id) stopShelfQueue();
+    const request = ++playbackRequest;
     currentTrack = track;
     if (audio.dataset.trackId !== track.id) {
       audio.src = track.audio;
       audio.dataset.trackId = track.id;
     }
     audio.play().then(() => {
+      if (request !== playbackRequest || audio.dataset.trackId !== track.id) return;
+      if (appShell.hidden) { audio.pause(); return; }
       playSfx('play');
-      updatePlayer(true);
-    }).catch(() => {
+      updatePlayer(!audio.paused);
+    }).catch((error) => {
+      if (request !== playbackRequest || error.name === 'AbortError') return;
       updatePlayer(false);
       showToast('PRESS PLAY TO START THE AUDIO SIGNAL.');
     });
@@ -309,21 +407,81 @@
     appShell.classList.add('has-player');
     const miniCover = $('#miniCover');
     miniCover.alt = `${track.title} cover`;
-    attachCoverFallback(miniCover, track);
+    miniCover.onerror = null;
     miniCover.src = track.cover;
+    attachCoverFallback(miniCover, track);
     $('#miniTitle').textContent = track.title;
     $('#miniArtist').textContent = track.artist;
   }
 
   function updatePlayer(isPlaying = !audio.paused) {
+    ritualDialog.classList.toggle('is-audio-playing', isPlaying && currentTrack.id === ritualTrack.id);
     $('#globalPlay span').textContent = isPlaying ? 'Ⅱ' : '▶';
     $('#globalPlay').setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
     $('#ritualPlay span:first-child').textContent = isPlaying ? 'PAUSE' : 'PLAY';
     $('#ritualPlay span:last-child').textContent = isPlaying ? 'Ⅱ' : '▶';
+    updateShelfPlayButton();
+  }
+
+  function updateShelfPlayButton() {
+    const queue = shelfQueue.read();
+    const active = Boolean(shelfQueue.current());
+    const playing = active && !audio.paused && !audio.ended;
+    $('#playShelf').disabled = shelfIds.length === 0;
+    $('#playShelf').textContent = playing ? 'Ⅱ PAUSE SHELF' : active ? '▶ RESUME SHELF' : '▶ PLAY SHELF';
+    $('#playShelf').setAttribute('aria-pressed', String(playing));
+    $('#shelfPlayStatus').textContent = active ? `${playing ? 'Playing' : 'Paused'} · ${queue.index + 1} / ${queue.ids.length} · ${currentTrack.title}` : shelfIds.length ? 'Play all your tapes, in shelf order.' : 'Add a tape to your Shelf to start listening.';
+    $$('.shelf-tape').forEach(tape => {
+      const selected = active && tape.dataset.playTrack === shelfQueue.current();
+      tape.classList.toggle('is-queued-current', selected);
+      if (selected) tape.setAttribute('aria-current', 'true');
+      else tape.removeAttribute('aria-current');
+    });
+  }
+
+  function stopShelfQueue() {
+    shelfQueue.clear();
+    playbackRequest++;
+    updateShelfPlayButton();
+  }
+
+  function playShelf() {
+    refreshAccount();
+    if (shelfQueue.current() && shelfIds.includes(shelfQueue.current())) {
+      togglePlayback(currentTrack);
+      return;
+    }
+    const firstId = shelfQueue.start(shelfIds);
+    const track = catalog.find(track => track.id === firstId);
+    if (!track) { stopShelfQueue(); showToast('YOUR SHELF IS EMPTY. FIND A TAPE IN DISCOVER.'); return; }
+    clearRitualTimers();
+    // Start inside the user's click, without an animation timer delaying audio permission.
+    if (audio.dataset.trackId === track.id) audio.currentTime = 0;
+    openRitual(track, false, 'playing');
+    startTrack(track);
+    updateShelfPlayButton();
+  }
+
+  function advanceShelfQueue() {
+    updatePlayer(false);
+    if (!shelfQueue.current() || audio.dataset.trackId !== shelfQueue.current()) return;
+    refreshAccount();
+    const finishedId = currentTrack.id;
+    const nextId = shelfQueue.next(shelfIds);
+    const track = catalog.find(track => track.id === nextId);
+    if (!track) { stopShelfQueue(); showToast('SHELF COMPLETE. ALL TAPES PLAYED.'); return; }
+    // Keep a dismissed player dismissed; update artwork only if it shows this queue.
+    if (ritualTrack.id === finishedId) {
+      clearRitualTimers();
+      if (ritualDialog.open) openRitual(track, false, 'playing');
+    }
+    startTrack(track);
+    updateShelfPlayButton();
   }
 
   function ejectTape() {
     if (!currentTrack) return;
+    stopShelfQueue();
     clearRitualTimers();
     audio.pause();
     playSfx('eject');
@@ -338,24 +496,61 @@
     updatePlayer(false);
   }
 
-  function keepCurrentTape() {
-    if (!shelfIds.includes(ritualTrack.id)) shelfIds.push(ritualTrack.id);
-    writeShelf();
-    if (ritualIsDaily) {
-      receivedDaily = true;
-      localStorage.setItem('presspad-v012-daily', 'kept');
+  function buyCurrentTape() {
+    try {
+      const result = collection.buy(ritualTrack.id);
+      refreshAccount();
+      refreshPurchaseState();
+      if (result.status === 'insufficient') { showToast('NOT ENOUGH DEMO CREDIT.'); return; }
+      renderDiscover();
+      renderShelf();
       updateRadio();
+      playSfx('keep');
+      showToast(result.status === 'purchased' ? `ADDED TO SHELF — $1.00 · ${ritualTrack.title}` : 'THIS TAPE IS ALREADY IN YOUR SHELF.');
+    } catch {
+      showToast('COULD NOT SAVE PURCHASE. CHECK LOCAL STORAGE OR RESET LOCAL DATA.');
     }
-    playSfx('keep');
-    renderShelf();
-    showToast(`ARCHIVED — ${ritualTrack.title}`);
-    $('#keepTape').textContent = 'ARCHIVED ✓';
+  }
+
+  function togglePlayback(track) {
+    if (!canPlay(track)) { audio.pause(); openRitual(track); return; }
+    if (audio.paused || audio.dataset.trackId !== track.id) startTrack(track);
+    else audio.pause();
+  }
+
+  function receiveDailyTape() {
+    try {
+      const result = collection.receive(dailyTrack.id);
+      refreshAccount();
+      renderDiscover();
+      renderShelf();
+      updateRadio();
+      openRitual(dailyTrack, true, result.status === 'received' ? 'sealed' : null);
+      if (result.status === 'received') showToast('RADIO TAPE RECEIVED — SAVED IN YOUR SHELF AND DIARY.');
+    } catch {
+      showToast('COULD NOT SAVE THIS RADIO TAPE. PLEASE TRY AGAIN.');
+    }
+  }
+
+  function resetLocalData() {
+    if (!window.confirm('Reset PRESS//PAD local data? This removes your Shelf, purchases, diary and notes, restores $100 demo credit, and returns to Login. This cannot be undone.')) return;
+    try {
+      collection.reset();
+      stopShelfQueue();
+      clearRitualTimers();
+      audio.pause();
+      entryMusic.pause();
+      window.location.reload();
+    } catch {
+      showToast('COULD NOT RESET LOCAL DATA. CHECK BROWSER STORAGE PERMISSIONS.');
+    }
   }
 
   loginForm.addEventListener('submit', (event) => { event.preventDefault(); activateApp(); });
   entryMusicToggle.addEventListener('click', () => {
     if (entryMusic.paused) {
       entryMusicEnabled = true;
+      if (entryMusic.error) entryMusic.load();
       startEntryMusic();
     } else {
       entryMusicEnabled = false;
@@ -363,10 +558,11 @@
       updateEntryMusicButton();
     }
   });
-  document.addEventListener('pointerdown', (event) => {
-    if (!event.target.closest('#entryMusicToggle')) startEntryMusic();
-  }, { once: true });
+  // Keep retries available: touch activation may arrive on click, not pointerdown.
+  document.addEventListener('click', retryEntryMusicOnGesture);
+  document.addEventListener('keydown', retryEntryMusicOnGesture);
   $('#logoutButton').addEventListener('click', () => {
+    stopShelfQueue();
     clearRitualTimers();
     if (ritualDialog.open) ritualDialog.close();
     if ($('#artistDialog').open) $('#artistDialog').close();
@@ -396,6 +592,7 @@
     if (caseScene.classList.contains('state-sealed')) {
       setRitualState('cover', 'COVER SIGNAL REVEALED. CLICK ONCE TO OPEN.');
       setRitualButton('OPEN CASE');
+      refreshPurchaseState();
       playSfx('click');
     } else beginInsertion();
   });
@@ -405,16 +602,23 @@
   skipRitual.addEventListener('click', completeInsertion);
   $('#closeRitual').addEventListener('click', () => { clearRitualTimers(); ritualDialog.close(); });
   ritualDialog.addEventListener('close', clearRitualTimers);
-  $('#ritualPlay').addEventListener('click', () => audio.paused ? audio.play() : audio.pause());
-  $('#keepTape').addEventListener('click', keepCurrentTape);
+  $('#ritualPlay').addEventListener('click', () => togglePlayback(ritualTrack));
+  $('#buyTape').addEventListener('click', buyCurrentTape);
+  $('#resetLocalData').addEventListener('click', resetLocalData);
   $('#ritualEject').addEventListener('click', ejectTape);
   $('#globalEject').addEventListener('click', ejectTape);
-  $('#globalPlay').addEventListener('click', () => audio.paused ? audio.play() : audio.pause());
+  $('#globalPlay').addEventListener('click', () => togglePlayback(currentTrack));
+  $('#playShelf').addEventListener('click', playShelf);
   $('#openCurrentTrack').addEventListener('click', () => openRitual(currentTrack, false, audio.paused ? 'cover' : 'playing'));
-  $('#receiveButton').addEventListener('click', () => openRitual(dailyTrack, true));
+  $('#receiveButton').addEventListener('click', receiveDailyTape);
   $('#closeArtist').addEventListener('click', () => $('#artistDialog').close());
 
-  audio.addEventListener('play', () => updatePlayer(true));
+  audio.addEventListener('play', () => {
+    if (appShell.hidden) { audio.pause(); return; }
+    const track = catalog.find((item) => item.id === audio.dataset.trackId);
+    if (!canPlay(track)) { audio.pause(); return; }
+    updatePlayer(true);
+  });
   audio.addEventListener('pause', () => updatePlayer(false));
   audio.addEventListener('loadedmetadata', () => {
     $('#seekInput').max = String(audio.duration || 100);
@@ -424,13 +628,19 @@
     $('#seekInput').value = String(audio.currentTime);
     $('#currentTime').textContent = formatTime(audio.currentTime);
   });
-  audio.addEventListener('ended', () => updatePlayer(false));
+  audio.addEventListener('ended', advanceShelfQueue);
+  audio.addEventListener('error', () => {
+    stopShelfQueue();
+    updatePlayer(false);
+    showToast('THIS AUDIO FILE COULD NOT LOAD. PLAYBACK STOPPED — TRY PLAY AGAIN.');
+  });
   $('#seekInput').addEventListener('input', (event) => { audio.currentTime = Number(event.target.value); });
   $('#volumeInput').addEventListener('input', (event) => { audio.volume = Number(event.target.value) / 100; });
   audio.volume = .7;
   entryMusic.volume = .18;
-  entryMusic.addEventListener('play', updateEntryMusicButton);
+  entryMusic.addEventListener('play', handleEntryMusicPlay);
   entryMusic.addEventListener('pause', updateEntryMusicButton);
+  entryMusic.addEventListener('error', () => { entryMusicState = 'error'; updateEntryMusicButton(); });
   window.addEventListener('pageshow', startEntryMusic);
   window.addEventListener('focus', startEntryMusic);
   startEntryMusic();
@@ -443,8 +653,16 @@
     }
   });
 
+  window.addEventListener('storage', (event) => {
+    if (event.key !== collection.key && event.key !== null) return;
+    clearRitualTimers();
+    refreshAccount();
+    if (!shelfIds.includes(currentTrack.id)) { stopShelfQueue(); audio.pause(); globalPlayer.hidden = true; appShell.classList.remove('has-player'); }
+    if (ritualDialog.open) openRitual(ritualTrack, ritualIsDaily);
+    renderDiscover(); renderShelf(); updateRadio();
+  });
+  refreshAccount();
   renderDiscover();
-  renderRadioHistory();
   renderShelf();
   updateRadio();
 })();

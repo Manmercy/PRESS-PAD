@@ -2,6 +2,8 @@
 
 Standalone HTML/CSS/JavaScript music prototype, packaged below 25 MB total. Includes the mobile Home, Login, Settings and Logout flow.
 
+Latest update: supplied blue cassette player with aligned playback; $100 demo wallet and $1 purchases required for unowned tapes; confirmed local reset; one mobile Settings entry. No real payments. See `docs/PLAYER_WALLET_UPDATE.md`.
+
 ## อัปโหลดขึ้น GitHub
 
 1. แตกไฟล์ `press-pad-v0.1.2-github-lite.zip` ก่อน
@@ -16,7 +18,7 @@ ZIP เป็นไฟล์สำหรับส่งต่อเท่าน�
 
 All 12 tracks retain their full-length content. Lite audio is a lossy AAC-LC preview copy at an 80 kbps target and 32 kHz stereo; small duration differences under 0.15 seconds come from encoding. Background images are optimized WebP copies. Original assets and the higher-quality `press-pad-v0.1.2-github` distribution remain untouched outside this folder.
 
-Some release cover images are not supplied; the existing CSS artwork fallback is intentional. Login audio autoplay depends on browser permission and may require a tap. Login is a local prototype session, not production authentication.
+The artwork update includes 12 distinct Common covers and the sealed cassette package, shared across Discover and the media player. See `docs/ARTWORK_UPDATE.md`. Login audio autoplay depends on browser permission and may require a tap. Login is a local prototype session, not production authentication.
 
 ## Local preview and validation
 

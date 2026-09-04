@@ -26,7 +26,7 @@
             </form>
           </div>
         </div>
-        <footer class="entry-status"><span>NETWORK: STABLE</span><button id="entryMusicToggle" type="button" aria-pressed="false">BGM / START</button><span>03 SEP 2026 · 16:42 ICT</span></footer>
+        <footer class="entry-status"><span>NETWORK: STABLE</span><button id="entryMusicToggle" type="button" aria-pressed="false">BGM / AUTO</button><span>03 SEP 2026 · 16:42 ICT</span></footer>
       </div>
       <audio id="entryMusic" src="./assets/music/Login Screen Memories.m4a" preload="auto" autoplay loop playsinline></audio>
     </section>
@@ -94,7 +94,13 @@
               <div class="sealed-package" id="sealedPackage" hidden aria-hidden="true"><span>P//P</span><small>DAILY PRESS · SIGNAL 003</small><b>IDENTITY ENCRYPTED</b></div>
             </div>
           </div>
-          <div class="radio-history"><span>RECENT BROADCASTS</span><div id="radioHistory"></div></div>
+          <section class="radio-history" aria-labelledby="broadcastHeading">
+            <header class="broadcast-heading"><h2 id="broadcastHeading">RECENT BROADCASTS</h2><p id="broadcastScheduleNote">Demo schedule · Newest first</p></header>
+            <table class="broadcast-table" role="table" aria-labelledby="broadcastHeading" aria-describedby="broadcastScheduleNote">
+              <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">BROADCAST DATE</th><th scope="col" role="columnheader">COVER</th><th scope="col" role="columnheader">TAPE DETAILS</th></tr></thead>
+              <tbody id="radioHistory" role="rowgroup"></tbody>
+            </table>
+          </section>
         </section>
 
         <section class="view shelf-view" data-page="shelf">
@@ -102,22 +108,33 @@
           <div class="shelf-room-fade" aria-hidden="true"></div>
           <header class="shelf-header"><p class="kicker">03 / PERSONAL MUSIC ARCHIVE</p><h1>MY SHELF</h1><p>Music you chose to keep.</p></header>
           <div class="physical-shelf">
-            <div class="shelf-label"><span>COLLECTION / SIDE A</span><span id="shelfCount">06 TAPES</span></div>
+            <div class="shelf-label"><span>COLLECTION / SIDE A</span><div class="shelf-play-tools"><span id="shelfCount">06 TAPES</span><button class="shelf-play-button" id="playShelf" type="button" aria-pressed="false">▶ PLAY SHELF</button></div></div>
+            <p class="shelf-play-status" id="shelfPlayStatus" aria-live="polite">Play all your tapes, in shelf order.</p>
             <div class="tape-row" id="tapeShelf" aria-label="Your cassette collection"></div>
             <div class="shelf-plank" aria-hidden="true"></div>
           </div>
-          <aside class="shelf-note"><span>SEPTEMBER '26</span><strong>DAILY ARCHIVE</strong><div class="mini-calendar" id="miniCalendar"></div></aside>
+          <section class="shelf-note" aria-labelledby="calendarTitle">
+            <div class="calendar-heading"><div><span class="kicker">YOUR MUSIC DIARY</span><h2 id="calendarTitle">DAILY ARCHIVE</h2></div><button id="calendarToday" type="button">Today</button></div>
+            <div class="calendar-month"><button id="calendarPrevious" type="button" aria-label="Previous month">←</button><h3 id="calendarMonth" aria-live="polite"></h3><button id="calendarNext" type="button" aria-label="Next month">→</button></div>
+            <div class="calendar-weekdays" aria-hidden="true"><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span></div>
+            <div class="mini-calendar" id="miniCalendar" role="group" aria-label="Choose a date"></div>
+            <div class="calendar-legend"><span><i class="purchase-dot"></i>Purchased</span><span><i class="radio-dot"></i>Radio</span><span><i class="note-dot"></i>My note</span></div>
+            <p id="calendarStatus" class="calendar-status" role="status">Choose a date to see your tapes or leave a note.</p>
+            <p class="calendar-footnote">Saved on this device. Earlier tapes have no recorded date.</p>
+          </section>
         </section>
 
         <section class="view settings-view" data-page="settings" aria-labelledby="settingsTitle">
           <button class="settings-back" data-view="home"><span aria-hidden="true">←</span> Home</button>
           <header class="settings-heading"><p class="kicker">YOUR LISTENING SPACE</p><h1 id="settingsTitle">Settings</h1></header>
           <div class="settings-account"><span class="account-mark" aria-hidden="true">P//P</span><div><span class="kicker">LOCAL SESSION</span><h2 id="sessionName">SIGNAL_GUEST</h2><p>Listening on this device.</p></div></div>
+          <div class="wallet-panel"><div><span class="kicker">DEMO WALLET</span><strong id="walletBalance" aria-live="polite">$100.00</strong></div><p>Buy a tape for $1.00.<br>Demo credits only — no real payment.</p></div>
           <div class="settings-actions" aria-label="Session actions">
             <button class="settings-row" data-view="home"><span><strong>Back to Home</strong><small>Return to today's signal</small></span><span aria-hidden="true">↗</span></button>
             <button class="settings-row logout-row" id="logoutButton"><span><strong>Log out</strong><small>Return to the Login screen</small></span><span aria-hidden="true">→</span></button>
           </div>
-          <p class="settings-note">Your saved tapes stay on this device when you log out.</p>
+          <p class="settings-note">Your tapes, diary and notes stay on this device when you log out. Reset local data removes them.</p>
+          <button class="reset-local-button" id="resetLocalData">Reset local data</button>
           <p class="settings-version">PRESS//PAD · V0.1.2</p>
         </section>
       </main>
@@ -146,18 +163,23 @@
       <div class="ritual-shell">
         <header><div><span id="ritualLabel">TAPE SELECTED</span><strong id="ritualTrackTitle">—</strong></div><button id="closeRitual" aria-label="Close">×</button></header>
         <div class="ritual-stage" id="ritualStage">
+          <div class="deck-assembly">
           <div class="case-scene state-sealed" id="caseScene">
+            <img class="seal-art" src="./assets/images/seal-package-v012.webp" alt="Silver PRESS//PAD sealed cassette package" />
             <div class="cover-panel"><img id="ritualCover" alt="" /><span class="cover-credit" id="ritualCredit"></span></div>
             <div class="case-back"><span>P//P</span><small>COMMON PRESS</small></div>
-            <div class="cassette" id="ritualCassette"><div class="cassette-label"><span class="reel"></span><strong id="cassetteTitle">—</strong><span class="reel"></span></div><small>SIDE A · PRESS//PAD</small></div>
+            <div class="cassette" id="ritualCassette"><img class="cassette-art" id="cassetteArt" alt="" /><div class="cassette-label"><span class="reel"></span><strong id="cassetteTitle">—</strong><span class="reel"></span></div><small>SIDE A · PRESS//PAD</small></div>
           </div>
-          <img class="player-device" src="./assets/images/player-device-v012.webp" alt="Original translucent PRESS//PAD cassette player" />
-          <div class="player-slot" aria-hidden="true"></div>
+          <img class="player-device" src="./assets/images/cassette-player-blue-v012.webp" alt="Blue PRESS//PAD cassette player" />
+          </div>
         </div>
         <aside class="ritual-controls">
+          <figure class="playing-artwork" id="playingArtwork" hidden><div class="playing-cover-frame"><img id="playingCover" alt="" /></div><figcaption><span>ON THE DECK / COMMON PRESS</span><strong id="playingCoverTitle"></strong><span id="playingCoverArtist"></span></figcaption></figure>
           <p id="ritualInstruction">TODAY'S TAPE IS SEALED.</p>
+          <p class="purchase-note" id="purchaseNote">Your tape is ready.</p>
+          <button class="primary-button buy-tape" id="buyTape" hidden>BUY TAPE · $1.00</button>
           <button class="primary-button" id="ritualAction"><span>REVEAL COVER</span><span>→</span></button>
-          <div class="playing-actions" id="playingActions" hidden><button class="primary-button" id="ritualPlay"><span>PAUSE</span><span>Ⅱ</span></button><button class="outline-button" id="keepTape">KEEP TAPE</button><button class="text-button" id="ritualEject">EJECT ↑</button></div>
+          <div class="playing-actions" id="playingActions" hidden><button class="primary-button" id="ritualPlay"><span>PAUSE</span><span>Ⅱ</span></button><button class="outline-button" id="keepTape" disabled>IN YOUR SHELF ✓</button><button class="text-button" id="ritualEject">EJECT ↑</button></div>
           <button class="skip-button" id="skipRitual" hidden>SKIP TO PLAYER</button>
         </aside>
       </div>
@@ -166,9 +188,17 @@
     <dialog class="artist-dialog" id="artistDialog"><article><button id="closeArtist" aria-label="Close">×</button><span class="kicker" id="artistGenre">ARTIST FILE</span><h2 id="artistName">—</h2><p id="artistBio">—</p><div id="artistTracks"></div></article></dialog>
 
     <audio id="audioEngine" preload="metadata"></audio>
+    <dialog class="diary-dialog" id="diaryDialog" aria-labelledby="diaryDate">
+      <header><div><span class="kicker">DAILY ARCHIVE</span><h2 id="diaryDate"></h2></div><button id="closeDiary" type="button" aria-label="Close daily archive">×</button></header>
+      <div id="diaryTracks" class="diary-tracks"></div>
+      <form id="diaryForm"><label for="diaryNote">MY NOTE</label><textarea id="diaryNote" maxlength="2000" rows="5" placeholder="A song, a feeling, a memory…" aria-describedby="diaryHint"></textarea><p id="diaryHint">Up to 2,000 characters · Saved on this device</p><p id="diaryStatus" role="status"></p><button class="primary-button" type="submit">SAVE NOTE</button></form>
+    </dialog>
     <output class="toast" id="toast" aria-live="polite"></output>
 
     <script src="./data/catalog.js"></script>
+    <script src="./js/collection.js"></script>
+    <script src="./js/calendar.js"></script>
+    <script src="./js/shelf-queue.js"></script>
     <script src="./js/app.js"></script>
   </body>
 </html>

@@ -65,6 +65,7 @@ const session = {
   ritualDialog: element(), audio: element(), globalPlayer: element(),
   appShell: element(), entryScreen: element(),
   clearRitualTimers() { timersCleared = true; },
+  stopShelfQueue() {},
   startEntryMusic() { bgmRequested = true; },
   window: { scrollTo() {} },
 };
