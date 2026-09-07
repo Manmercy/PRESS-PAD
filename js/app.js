@@ -39,6 +39,10 @@
   let entryMusicEnabled = true;
   let entryMusicState = 'ready';
   let playbackRequest = 0;
+  let transportState = 'idle';
+  let hardwareHoldTimer;
+  let hardwareSeekTimer;
+  let suppressHardwareNext = false;
 
   function readShelf() {
     try {
@@ -315,6 +319,7 @@
     ritualDialog.dataset.ritualState = state;
     $('#playingArtwork').hidden = state !== 'playing';
     $('#ritualInstruction').textContent = instruction;
+    updateHardwareControls();
   }
 
   function setRitualButton(label) {
@@ -392,6 +397,7 @@
     if (!canPlay(track)) return;
     if (shelfQueue.current() && shelfQueue.current() !== track.id) stopShelfQueue();
     const request = ++playbackRequest;
+    transportState = 'loading';
     currentTrack = track;
     if (audio.dataset.trackId !== track.id) {
       audio.src = track.audio;
@@ -424,7 +430,110 @@
     $('#globalPlay').setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
     $('#ritualPlay span:first-child').textContent = isPlaying ? 'PAUSE' : 'PLAY';
     $('#ritualPlay span:last-child').textContent = isPlaying ? 'Ⅱ' : '▶';
+    if (hardwareReady()) setHardwareLCD(isPlaying ? 'PLAY' : transportState === 'stopped' ? 'STOP' : 'PAUSE', formatTime(audio.currentTime));
+    else setHardwareLCD('INSERT', 'NO TAPE');
+    updateHardwareControls();
     updateShelfPlayButton();
+  }
+
+  function hardwareReady() {
+    return caseScene.classList.contains('state-playing') && currentTrack.id === ritualTrack.id && audio.dataset.trackId === currentTrack.id && shelfIds.includes(currentTrack.id);
+  }
+
+  function setHardwareLCD(state, detail = formatTime(audio.currentTime)) {
+    $('#hardwareLcdState').textContent = state;
+    $('#hardwareLcdDetail').textContent = detail;
+    const lcd = $('#hardwareLcd');
+    lcd.classList.remove('is-pulsing');
+    if (!reduceMotion) requestAnimationFrame(() => lcd.classList.add('is-pulsing'));
+  }
+
+  function playableTrackIndex() {
+    return shelfIds.indexOf(currentTrack.id);
+  }
+
+  function updateHardwareControls() {
+    const ready = hardwareReady();
+    const index = playableTrackIndex();
+    const controls = Object.fromEntries($$('[data-hardware-control]').map(button => [button.dataset.hardwareControl, button]));
+    if (!controls.play) return;
+    controls.previous.disabled = !ready || index <= 0;
+    controls.rewind.disabled = !ready || audio.currentTime <= 0;
+    controls.play.disabled = !ready || !audio.paused;
+    controls.pause.disabled = !ready || audio.paused;
+    controls.stop.disabled = !ready || (audio.paused && audio.currentTime <= 0);
+    controls.next.disabled = !ready;
+    const hasNext = index >= 0 && index < shelfIds.length - 1;
+    controls.next.setAttribute('aria-label', hasNext ? 'Next track; press and hold to fast-forward' : 'Fast-forward 10 seconds');
+    controls.next.title = hasNext ? 'Next track · Hold to fast-forward' : 'Fast-forward 10 seconds';
+  }
+
+  function seekHardware(seconds, label) {
+    if (!hardwareReady()) return;
+    const duration = Number.isFinite(audio.duration) ? audio.duration : Infinity;
+    audio.currentTime = Math.max(0, Math.min(duration, audio.currentTime + seconds));
+    $('#seekInput').value = String(audio.currentTime);
+    $('#currentTime').textContent = formatTime(audio.currentTime);
+    setHardwareLCD(label, formatTime(audio.currentTime));
+    updateHardwareControls();
+  }
+
+  function selectHardwareTrack(direction) {
+    if (!hardwareReady()) return;
+    refreshAccount();
+    const index = playableTrackIndex();
+    const track = catalog.find(item => item.id === shelfIds[index + direction]);
+    if (!track) { setHardwareLCD(direction < 0 ? 'START' : 'END', formatTime(audio.currentTime)); return; }
+    stopShelfQueue();
+    openRitual(track, false, 'playing');
+    startTrack(track);
+  }
+
+  function stopHardwarePlayback() {
+    if (!hardwareReady()) return;
+    stopShelfQueue();
+    transportState = 'stopped';
+    audio.pause();
+    audio.currentTime = 0;
+    $('#seekInput').value = '0';
+    $('#currentTime').textContent = '0:00';
+    updatePlayer(false);
+    setHardwareLCD('STOP', '0:00');
+  }
+
+  function runHardwareControl(action) {
+    if (!hardwareReady()) return;
+    playSfx('click');
+    if (action === 'previous') selectHardwareTrack(-1);
+    if (action === 'rewind') seekHardware(-10, 'REW');
+    if (action === 'play' && audio.paused) startTrack(currentTrack);
+    if (action === 'next') {
+      const index = playableTrackIndex();
+      if (index < shelfIds.length - 1) selectHardwareTrack(1);
+      else seekHardware(10, 'FF');
+    }
+    if (action === 'stop') stopHardwarePlayback();
+    if (action === 'pause' && !audio.paused) audio.pause();
+  }
+
+  function startHardwareFastForward(button) {
+    if (button.disabled) return;
+    clearTimeout(hardwareHoldTimer);
+    clearInterval(hardwareSeekTimer);
+    suppressHardwareNext = false;
+    hardwareHoldTimer = setTimeout(() => {
+      suppressHardwareNext = true;
+      button.classList.add('is-held');
+      playSfx('click');
+      seekHardware(5, 'FF');
+      hardwareSeekTimer = setInterval(() => seekHardware(5, 'FF'), 300);
+    }, 450);
+  }
+
+  function endHardwareFastForward(button) {
+    clearTimeout(hardwareHoldTimer);
+    clearInterval(hardwareSeekTimer);
+    button.classList.remove('is-held');
   }
 
   function updateShelfPlayButton() {
@@ -612,6 +721,41 @@
   $('#ritualEject').addEventListener('click', ejectTape);
   $('#globalEject').addEventListener('click', ejectTape);
   $('#globalPlay').addEventListener('click', () => togglePlayback(currentTrack));
+  $('#hardwareControls').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-hardware-control]');
+    if (!button || button.disabled) return;
+    if (button.dataset.hardwareControl === 'next' && suppressHardwareNext) { suppressHardwareNext = false; return; }
+    runHardwareControl(button.dataset.hardwareControl);
+  });
+  $('#hardwareControls').addEventListener('pointerdown', (event) => {
+    const button = event.target.closest('[data-hardware-control="next"]');
+    if (!button || button.disabled) return;
+    button.setPointerCapture?.(event.pointerId);
+    startHardwareFastForward(button);
+  });
+  $('#hardwareControls').addEventListener('pointerup', (event) => {
+    const button = event.target.closest('[data-hardware-control="next"]');
+    if (button) endHardwareFastForward(button);
+  });
+  $('#hardwareControls').addEventListener('pointercancel', (event) => {
+    const button = event.target.closest('[data-hardware-control="next"]');
+    if (button) { suppressHardwareNext = true; endHardwareFastForward(button); }
+  });
+  $('#hardwareControls').addEventListener('keydown', (event) => {
+    const button = event.target.closest('[data-hardware-control="next"]');
+    if (!button || button.disabled || ![' ', 'Enter'].includes(event.key)) return;
+    event.preventDefault();
+    if (!event.repeat) startHardwareFastForward(button);
+  });
+  $('#hardwareControls').addEventListener('keyup', (event) => {
+    const button = event.target.closest('[data-hardware-control="next"]');
+    if (!button || ![' ', 'Enter'].includes(event.key)) return;
+    event.preventDefault();
+    const held = suppressHardwareNext;
+    endHardwareFastForward(button);
+    suppressHardwareNext = false;
+    if (!held) runHardwareControl('next');
+  });
   $('#playShelf').addEventListener('click', playShelf);
   $('#openCurrentTrack').addEventListener('click', () => openRitual(currentTrack, false, audio.paused ? 'cover' : 'playing'));
   $('#receiveButton').addEventListener('click', receiveDailyTape);
@@ -621,24 +765,39 @@
     if (appShell.hidden) { audio.pause(); return; }
     const track = catalog.find((item) => item.id === audio.dataset.trackId);
     if (!canPlay(track)) { audio.pause(); return; }
+    transportState = 'playing';
     updatePlayer(true);
   });
-  audio.addEventListener('pause', () => updatePlayer(false));
+  audio.addEventListener('pause', () => {
+    if (transportState !== 'stopped') transportState = 'paused';
+    updatePlayer(false);
+  });
   audio.addEventListener('loadedmetadata', () => {
     $('#seekInput').max = String(audio.duration || 100);
     $('#durationTime').textContent = formatTime(audio.duration);
+    updateHardwareControls();
   });
   audio.addEventListener('timeupdate', () => {
     $('#seekInput').value = String(audio.currentTime);
     $('#currentTime').textContent = formatTime(audio.currentTime);
+    if (hardwareReady()) {
+      $('#hardwareLcdState').textContent = audio.paused ? transportState === 'stopped' ? 'STOP' : 'PAUSE' : 'PLAY';
+      $('#hardwareLcdDetail').textContent = formatTime(audio.currentTime);
+    }
+    updateHardwareControls();
   });
-  audio.addEventListener('ended', advanceShelfQueue);
+  audio.addEventListener('ended', () => { transportState = 'stopped'; advanceShelfQueue(); updateHardwareControls(); });
   audio.addEventListener('error', () => {
     stopShelfQueue();
     updatePlayer(false);
     showToast('THIS AUDIO FILE COULD NOT LOAD. PLAYBACK STOPPED — TRY PLAY AGAIN.');
   });
-  $('#seekInput').addEventListener('input', (event) => { audio.currentTime = Number(event.target.value); });
+  $('#seekInput').addEventListener('input', (event) => {
+    audio.currentTime = Number(event.target.value);
+    $('#currentTime').textContent = formatTime(audio.currentTime);
+    if (hardwareReady()) setHardwareLCD('SEEK', formatTime(audio.currentTime));
+    updateHardwareControls();
+  });
   $('#volumeInput').addEventListener('input', (event) => { audio.volume = Number(event.target.value) / 100; });
   audio.volume = .7;
   entryMusic.volume = .18;

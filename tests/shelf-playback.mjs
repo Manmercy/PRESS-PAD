@@ -111,7 +111,7 @@ call('startTrack(catalog[0])');
 context.appShell.hidden = true;
 finishPending(); await flush();
 assert.ok(audio.paused, 'Delayed play does not leak into Login');
-assert.match(app, /audio\.addEventListener\('ended', advanceShelfQueue\)/);
+assert.match(app, /audio\.addEventListener\('ended', \(\) => \{ transportState = 'stopped'; advanceShelfQueue\(\); updateHardwareControls\(\); \}\)/);
 for (const segment of [app.slice(app.indexOf('  function ejectTape('), app.indexOf('  function buyCurrentTape(')), app.slice(app.indexOf('  function resetLocalData('), app.indexOf("  loginForm.addEventListener")), app.slice(app.indexOf("  $('#logoutButton').addEventListener"), app.indexOf("  document.addEventListener('click', (event)"))]) {
   assert.ok(segment.includes('stopShelfQueue()'), 'Queue cleared on eject/reset/logout');
 }

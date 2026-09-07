@@ -4,7 +4,7 @@
   "private": true,
   "description": "Standalone HTML prototype for PRESS//PAD v0.1.2",
   "scripts": {
-    "check": "node --check js/app.js && node --check js/collection.js && node --check js/calendar.js && node --check js/shelf-queue.js && node --check data/catalog.js && node tests/validate.mjs && node tests/mobile-flow.mjs && node tests/artwork-flow.mjs && node tests/purchase-flow.mjs && node tests/broadcast-history.mjs && node tests/shelf-login-flow.mjs && node tests/calendar-flow.mjs && node tests/shelf-playback.mjs",
-    "test": "node tests/validate.mjs && node tests/mobile-flow.mjs && node tests/artwork-flow.mjs && node tests/purchase-flow.mjs && node tests/broadcast-history.mjs && node tests/shelf-login-flow.mjs && node tests/calendar-flow.mjs && node tests/shelf-playback.mjs"
+    "check": "node --check js/app.js && node --check js/collection.js && node --check js/calendar.js && node --check js/shelf-queue.js && node --check data/catalog.js && node tests/validate.mjs && node tests/mobile-flow.mjs && node tests/artwork-flow.mjs && node tests/purchase-flow.mjs && node tests/broadcast-history.mjs && node tests/shelf-login-flow.mjs && node tests/calendar-flow.mjs && node tests/shelf-playback.mjs && node tests/hardware-controls.mjs",
+    "test": "node tests/validate.mjs && node tests/mobile-flow.mjs && node tests/artwork-flow.mjs && node tests/purchase-flow.mjs && node tests/broadcast-history.mjs && node tests/shelf-login-flow.mjs && node tests/calendar-flow.mjs && node tests/shelf-playback.mjs && node tests/hardware-controls.mjs"
   }
 }

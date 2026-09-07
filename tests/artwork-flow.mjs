@@ -27,13 +27,13 @@ assert.ok(css.includes('.ritual-dialog:not(.is-audio-playing) .reel'));
 const elements = new Map();
 function element() {
   return { hidden: false, src: '', textContent: '', dataset: {}, style: { setProperty(name, value) { this[name] = value; } },
-    classList: { toggle(name, value) { this[name] = value; } }, setAttribute() {}, querySelector() { return element(); } };
+    classList: { toggle(name, value) { this[name] = value; }, contains(name) { return Boolean(this[name]); }, add(name) { this[name] = true; }, remove(name) { this[name] = false; } }, setAttribute() {}, querySelector() { return element(); } };
 }
 const $ = (selector) => { if (!elements.has(selector)) elements.set(selector, element()); return elements.get(selector); };
-const context = { $, ritualTrack: null, ritualIsDaily: false, currentTrack: tracks[0],
+const context = { $, $$: () => [], ritualTrack: null, ritualIsDaily: false, currentTrack: tracks[0],
   $$: () => [], shelfQueue: { read: () => ({ ids: [], index: -1 }), current: () => null },
-  clearRitualTimers() {}, attachCoverFallback() {}, setRitualButton() {}, refreshAccount() {}, refreshPurchaseState() {},
-  audio: { paused: true, pause() {} }, receivedDaily: false, shelfIds: [],
+  clearRitualTimers() {}, attachCoverFallback() {}, setRitualButton() {}, refreshAccount() {}, refreshPurchaseState() {}, updateHardwareControls() {},
+  audio: { paused: true, currentTime: 0, dataset: {}, pause() {} }, receivedDaily: false, shelfIds: [], reduceMotion: true, transportState: 'idle',
   caseScene: element(), skipRitual: element(), playingActions: element(), ritualAction: element(),
   ritualDialog: { ...element(), open: false, showModal() { this.open = true; } } };
 const state = app.slice(app.indexOf('  function setRitualState('), app.indexOf('  function setRitualButton('));
